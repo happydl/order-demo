@@ -53,9 +53,9 @@ public class UserController {
     //    }
     @RequestMapping("/login")
     public ResultJSONObject login(@RequestBody @Validated User user,
-                                  @CookieValue(name = "token", defaultValue = "empty") String token,
+//                                  @CookieValue(name = "token", defaultValue = "empty") String token,
                                   HttpServletResponse response) {
-        System.out.printf("name: %s, password: %s, cookie: %s ", user.name, user.password, token);
+//        System.out.printf("name: %s, password: %s, cookie: %s ", user.name, user.password, token);
 
         // 尝试登录, res 为登录成功token
         String res = userService.login(user);

@@ -1,6 +1,5 @@
 package com.ldm.order.service;
 
-import com.ldm.order.common.CacheUtils;
 import com.ldm.order.common.RespCode;
 import com.ldm.order.exception.MyException;
 import com.ldm.order.domain.User;
@@ -75,15 +74,24 @@ public class UserService {
                 throw new MyException(RespCode.FAIL, "用户名重复");
             }
         }
+        user.setId(genId());
         userList.add(user);
         return 0;
     }
 
     public boolean checkToken(String value) {
-        if (tokenToId.containsKey(value)) {
-            return true;
+        return tokenToId.containsKey(value);
+    }
+
+    public User tokenToUser(String token) {
+        if (tokenToId.containsKey(token)) {
+            if (findUserById(tokenToId.get(token)) != null) {
+                return findUserById(tokenToId.get(token));
+            } else {
+                throw new MyException(RespCode.ERROR, "未找到token对应的用户");
+            }
         }
-        return false;
+        return null;
     }
 
 }
