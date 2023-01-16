@@ -1,15 +1,24 @@
 package com.ldm.order.domain;
 
+import javax.persistence.*;
 import java.util.Date;
 
+@Entity
+@Table(name="t_schedule", uniqueConstraints = @UniqueConstraint(name="un_scheduleId", columnNames = {"id"}))
 public class Schedule {
 
+    @Id
+    @GeneratedValue(strategy= GenerationType.AUTO)
     private Integer id;
     private Integer fid;
     private String theater;
     private Date showtime;
     private Integer quota;
     private Integer price;
+
+    public Schedule() {
+
+    }
 
     public Schedule(Integer id, Integer fid, String theater, Date showtime, Integer quota, Integer price) {
         this.id = id;

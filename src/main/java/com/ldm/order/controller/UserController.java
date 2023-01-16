@@ -2,8 +2,11 @@ package com.ldm.order.controller;
 
 import com.ldm.order.common.RespCode;
 import com.ldm.order.common.ResultJSONObject;
+import com.ldm.order.dao.UserRepository;
 import com.ldm.order.domain.User;
+import com.ldm.order.exception.MyException;
 import com.ldm.order.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +18,9 @@ public class UserController {
 
 
     private UserService userService;
+
+    @Autowired
+    UserRepository userRepository;
 
     public UserController(UserService userService) {
         this.userService = userService;
@@ -42,11 +48,6 @@ public class UserController {
         return "12345";
     }
 
-    @RequestMapping("/forward")
-    public String forward() {
-        return "login.html";
-    }
-
 
 //    public ResponseData login(@RequestBody String name, @RequestBody @RequestParam String password) {
 
@@ -57,12 +58,16 @@ public class UserController {
                                   HttpServletResponse response) {
 //        System.out.printf("name: %s, password: %s, cookie: %s ", user.name, user.password, token);
 
+        User u = userRepository.findByNameAndPassword(user.getName(), user.getPassword());
+        if (u == null) {
+            return new ResultJSONObject(RespCode.USER_ACCOUNT_ERROR);
+        }
         // 尝试登录, res 为登录成功token
-        String res = userService.login(user);
+        String res = userService.login(u);
 
         Cookie cookie = new Cookie("token", res);
         response.addCookie(cookie);
-        return ResultJSONObject.success(userService.findUserByName(user.name));
+        return ResultJSONObject.success();
 
     }
 
@@ -70,19 +75,22 @@ public class UserController {
     public ResultJSONObject register(@RequestBody @Validated User user, HttpServletResponse response) {
         System.out.printf("name: %s, password: %s \\n", user.name, user.password);
 
+
+        userRepository.save(user);
+
         // 尝试登录
         int res = userService.register(user);
 
-        if (res == -1) {
-            return new ResultJSONObject<>(RespCode.FAIL, "用户名已存在");
-        } else {
-            // 设置cookie
-            Cookie cookie = new Cookie("token", String.valueOf(res));
-            response.addCookie(cookie);
-            return ResultJSONObject.success(userService.findUserByName(user.name));
-        }
+        return ResultJSONObject.success();
 
-//        ResultJsonObject result = null;
+//        if (res == -1) {
+//            return new ResultJSONObject<>(RespCode.FAIL, "用户名已存在");
+//        } else {
+//            // 设置cookie
+//            Cookie cookie = new Cookie("token", String.valueOf(res));
+//            response.addCookie(cookie);
+//            return ResultJSONObject.success(userService.findUserByName(user.name));
+//        }
 
     }
 }

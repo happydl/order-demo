@@ -2,6 +2,10 @@ package com.ldm.order.controller;
 
 import com.ldm.order.common.RespCode;
 import com.ldm.order.common.ResultJSONObject;
+import com.ldm.order.dao.FilmRepository;
+import com.ldm.order.dao.OrderRepository;
+import com.ldm.order.dao.ScheduleRepository;
+import com.ldm.order.domain.Film;
 import com.ldm.order.domain.Order;
 import com.ldm.order.domain.Schedule;
 import com.ldm.order.domain.User;
@@ -18,10 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @RestController
 public class OrderController {
@@ -33,6 +34,12 @@ public class OrderController {
 
     @Autowired
     private OrderEvent orderEvent;
+    @Autowired
+    private OrderRepository orderRepository;
+    @Autowired
+    private FilmRepository filmRepository;
+    @Autowired
+    private ScheduleRepository scheduleRepository;
 
     @PostMapping("/orders")
     public ResultJSONObject placeOrder(@RequestBody @Validated Order order) {
@@ -47,7 +54,8 @@ public class OrderController {
 
         orderEvent.notifyObservers(newOrder);
 
-        dataHelper.addOrder(newOrder);
+//        dataHelper.addOrder(newOrder);
+        orderRepository.save(newOrder);
 
         return ResultJSONObject.success();
     }
@@ -58,13 +66,22 @@ public class OrderController {
         String token = CacheUtils.getCurrentToken();
         Integer uid = userService.tokenToUser(token).getId();
 
-        List<Order> orders = dataHelper.getOrderList();
+//        List<Order> orders = dataHelper.getOrderList();
+        List<Order> orders = orderRepository.findByCustomerId(uid);
 
-        List<Order> res = new ArrayList<>();
+//        List<Order> res = new ArrayList<>();
+        List<Map<String, Object>> res = new ArrayList<>();
         for (Order order: orders) {
-            if (Objects.equals(order.getCustomerId(), uid)) {
-                res.add(order);
-            }
+            Map<String, Object> map = new HashMap<>();
+            Schedule schedule = scheduleRepository.findById(order.getScheduleId()).get();
+            Film film = filmRepository.findById(schedule.getFid()).get();
+            String name = film.getName();
+            map.put("id", order.getId());
+            map.put("name", name);
+            map.put("orderTime", order.getOrderTime());
+            map.put("quantity", order.getQuantity());
+            map.put("price", order.getPrice());
+            res.add(map);
         }
 
         return ResultJSONObject.success(res);

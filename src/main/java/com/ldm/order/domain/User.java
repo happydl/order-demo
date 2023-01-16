@@ -2,13 +2,22 @@ package com.ldm.order.domain;
 
 import org.hibernate.validator.constraints.Length;
 
+import javax.persistence.*;
 import javax.validation.constraints.*;
+
+
+@Entity
+@Table(name="t_user", uniqueConstraints = @UniqueConstraint(name="un_userId", columnNames = {"id"}))
 public class User {
 
+
+    @Id
+    @GeneratedValue(strategy= GenerationType.AUTO)
     public Integer id;
 
     @NotBlank(message="账号长度在3~20个字符")
     @Length(min = 3,max = 20,message="账号长度在3~20个字符")
+    @Column(unique=true)
     public String name;
 
     @NotBlank(message="用户密码在3~8个字符")
